@@ -19,4 +19,24 @@ router.get("/posts", (req, res) => {
   });
 });
 
+// DELETE
+router.delete("/posts/:id", (req, res) => {
+  const postId = req.params.id;
+  const query = "DELETE FROM posts WHERE id = ?";
+
+  db.query(query, [postId], (err, results) => {
+    if (err) {
+      console.error("Errore nell'eliminazione del post", err);
+      res.status(500).json({ error: "Errore del server" });
+      return;
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: "Post non trovato" });
+    }
+
+    res.status(204).send();
+  });
+});
+
 module.exports = router;
