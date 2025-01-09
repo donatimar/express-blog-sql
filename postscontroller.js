@@ -7,7 +7,6 @@ router.get("/", (req, res) => {
   res.send("API dei post");
 });
 
-// GET
 router.get("/posts", (req, res) => {
   const query = "SELECT * FROM posts";
   db.query(query, (err, results) => {
@@ -20,7 +19,7 @@ router.get("/posts", (req, res) => {
   });
 });
 
-// DESTROY
+// DELETE
 router.delete("/posts/:id", (req, res) => {
   const postId = req.params.id;
   const query = "DELETE FROM posts WHERE id = ?";
@@ -43,11 +42,21 @@ router.delete("/posts/:id", (req, res) => {
 // SHOW
 router.get("/posts/:id", (req, res) => {
   const postId = req.params.id;
-  const query = "SELECT * FROM posts WHERE id = ?";
+
+  // Query per recupero di post e tag
+  const query = `
+    SELECT posts.id, posts.title, posts.content, posts.image, tags.label AS tag
+    FROM posts
+    INNER JOIN post_tag 
+    ON posts.id = post_tag.post_id
+    INNER JOIN tags 
+    ON post_tag.tag_id = tags.id
+    WHERE posts.id = ?
+  `;
 
   db.query(query, [postId], (err, results) => {
     if (err) {
-      console.error("Errore nel recupero del post", err);
+      console.error("Errore nel recupero del post con i tag", err);
       res.status(500).json({ error: "Errore del server" });
       return;
     }
@@ -56,7 +65,11 @@ router.get("/posts/:id", (req, res) => {
       return res.status(404).json({ error: "Post non trovato" });
     }
 
-    res.json(results[0]);
+    // Raggruppamento dei tag
+    const post = results[0];
+    post.tags = results.map((row) => row.tag);
+
+    res.json(post);
   });
 });
 
