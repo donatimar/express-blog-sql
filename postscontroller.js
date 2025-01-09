@@ -7,6 +7,7 @@ router.get("/", (req, res) => {
   res.send("API dei post");
 });
 
+// GET
 router.get("/posts", (req, res) => {
   const query = "SELECT * FROM posts";
   db.query(query, (err, results) => {
@@ -19,7 +20,7 @@ router.get("/posts", (req, res) => {
   });
 });
 
-// DELETE
+// DESTROY
 router.delete("/posts/:id", (req, res) => {
   const postId = req.params.id;
   const query = "DELETE FROM posts WHERE id = ?";
@@ -36,6 +37,26 @@ router.delete("/posts/:id", (req, res) => {
     }
 
     res.status(204).send();
+  });
+});
+
+// SHOW
+router.get("/posts/:id", (req, res) => {
+  const postId = req.params.id;
+  const query = "SELECT * FROM posts WHERE id = ?";
+
+  db.query(query, [postId], (err, results) => {
+    if (err) {
+      console.error("Errore nel recupero del post", err);
+      res.status(500).json({ error: "Errore del server" });
+      return;
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Post non trovato" });
+    }
+
+    res.json(results[0]);
   });
 });
 
